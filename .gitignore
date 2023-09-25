@@ -4,7 +4,6 @@ node_modules/
 data
 .env
 .env.local
-Dockerfile
 __pycache__
 
 # Log files

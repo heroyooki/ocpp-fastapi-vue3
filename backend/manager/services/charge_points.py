@@ -7,9 +7,9 @@ from loguru import logger
 from passlib.hash import pbkdf2_sha256 as sha256
 from sqlalchemy import select, update, text, func, or_, String, delete
 from sqlalchemy.sql import selectable
+from pyocpp_contrib.v16.views.events import StatusNotificationEvent
 
 import manager.models as models
-from charge_point_node.models.status_notification import StatusNotificationEvent
 from manager.models import ChargePoint
 from manager.views.charge_points import CreateChargPointView, ConnectorView
 

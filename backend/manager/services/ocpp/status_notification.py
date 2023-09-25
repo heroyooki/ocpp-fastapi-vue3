@@ -1,16 +1,16 @@
 from ocpp.v16.enums import ChargePointStatus
 from sqlalchemy.ext.asyncio import AsyncSession
+from pyocpp_contrib.v16.views.events import StatusNotificationEvent
+from pyocpp_contrib.v16.views.tasks import StatusNotificationResponse
 
-from manager.models.tasks.status_notification import StatusNotificationTask
 from manager.services.charge_points import update_connectors, update_charge_point
-from charge_point_node.models.status_notification import StatusNotificationEvent
 from manager.views.charge_points import ChargePointUpdateStatusView
 
 
 async def process_status_notification(
         session: AsyncSession,
         event: StatusNotificationEvent
-) -> StatusNotificationTask:
+) -> StatusNotificationResponse:
 
     await update_connectors(session, event)
 
@@ -18,7 +18,7 @@ async def process_status_notification(
         data = ChargePointUpdateStatusView(status=ChargePointStatus.available)
         await update_charge_point(session, event.charge_point_id, data=data)
 
-    return StatusNotificationTask(
+    return StatusNotificationResponse(
         message_id=event.message_id,
         charge_point_id=event.charge_point_id
     )

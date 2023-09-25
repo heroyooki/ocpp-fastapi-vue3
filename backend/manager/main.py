@@ -1,10 +1,10 @@
 import asyncio
 
 from loguru import logger
+from pyocpp_contrib.queue.consumer import start_consume
+from pyocpp_contrib.settings import EVENTS_EXCHANGE_NAME
 
 from core.database import get_contextual_session
-from core.queue.consumer import start_consume
-from core.settings import EVENTS_EXCHANGE_NAME
 from manager import app
 from manager.controllers.accounts import accounts_router
 from manager.controllers.charge_points import charge_points_router

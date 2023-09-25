@@ -1,16 +1,16 @@
 from ocpp.v201.enums import RegistrationStatusType
+from pyocpp_contrib.v16.views.events import BootNotificationEvent
+from pyocpp_contrib.v16.views.tasks import BootNotificationResponse
 
-from charge_point_node.models.boot_notification import BootNotificationEvent
 from core.utils import get_utc_as_string
-from manager.models.tasks.boot_notification import BootNotificationTask
 
 
 async def process_boot_notification(
         session,
         event: BootNotificationEvent
-) -> BootNotificationTask:
+) -> BootNotificationResponse:
 
-    return BootNotificationTask(
+    return BootNotificationResponse(
         message_id=event.message_id,
         charge_point_id=event.charge_point_id,
         current_time=get_utc_as_string(),

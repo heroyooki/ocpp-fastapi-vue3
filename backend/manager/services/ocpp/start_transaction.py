@@ -1,18 +1,18 @@
 from loguru import logger
 
 from ocpp.v16.enums import AuthorizationStatus
+from pyocpp_contrib.v16.views.events import StartTransactionEvent
+from pyocpp_contrib.v16.views.tasks import StartTransactionResponse
 
-from manager.models.tasks.start_transaction import StartTransactionTask
 from manager.services.charge_points import get_charge_point
 from manager.views.transactions import CreateTransactionView
 from manager.services.transactions import create_transaction
-from charge_point_node.models.start_transaction import StartTransactionEvent
 
 
 async def process_start_transaction(
         session,
         event: StartTransactionEvent
-) -> StartTransactionTask:
+) -> StartTransactionResponse:
     logger.info(f"Start process StartTransaction (event={event})")
     charge_point = await get_charge_point(session, event.charge_point_id)
     view = CreateTransactionView(
@@ -26,7 +26,7 @@ async def process_start_transaction(
     transaction = await create_transaction(session, view)
     await session.flush()
 
-    return StartTransactionTask(
+    return StartTransactionResponse(
         message_id=event.message_id,
         charge_point_id=event.charge_point_id,
         transaction_id=transaction.transaction_id,

@@ -5,7 +5,7 @@ import os
 from loguru import logger
 from ocpp.v16.enums import Action
 
-from core.fields import ConnectionStatus
+from pyocpp_contrib.enums import ConnectionAction
 
 DEBUG = os.environ.get("DEBUG") == "1"
 
@@ -45,7 +45,7 @@ HTTP_SERVER_HOST = os.environ["HTTP_SERVER_HOST"]
 HTTP_SERVER_PORT = int(os.environ["HTTP_SERVER_PORT"])
 
 ALLOWED_SERVER_SENT_EVENTS = [
-    ConnectionStatus.LOST_CONNECTION,
+    ConnectionAction.lost_connection,
     Action.Heartbeat,
     Action.StatusNotification,
     Action.StartTransaction,

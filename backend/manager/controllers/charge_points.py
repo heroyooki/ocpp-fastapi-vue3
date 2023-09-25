@@ -1,13 +1,11 @@
 from typing import Tuple
 
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy import delete
 from loguru import logger
+from pyocpp_contrib.queue.publisher import publish
 
 from core.database import get_contextual_session
-from core.queue.publisher import publish
 from manager.models import AuthData, Account, ChargePoint
-from manager.models.tasks.connections import DisconnectTask
 from manager.services.accounts import get_account
 from manager.services.charge_points import (
     get_charge_point,
@@ -66,6 +64,7 @@ async def add_charge_point(
         await session.commit()
         await session.close()
 
+
 @charge_points_router.get(
     "/{account_id}/charge_points/counters",
     status_code=status.HTTP_200_OK,
@@ -76,16 +75,6 @@ async def get_counters(account: Account = Depends(get_account)):
         counters = await get_statuses_counts(session, account.id)
         await session.close()
         return counters
-
-
-@charge_points_router.patch(
-    "/{account_id}/charge_points/{charge_point_id}",
-    status_code=status.HTTP_204_NO_CONTENT
-)
-async def disconnect(charge_point_id: str):
-    await acquire_lock(charge_point_id)
-    task = DisconnectTask(charge_point_id=charge_point_id)
-    await publish(task.json(), to=task.exchange)
 
 
 @charge_points_router.delete(

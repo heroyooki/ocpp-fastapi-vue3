@@ -1,14 +1,14 @@
-from manager.models.tasks.security_event_notification import SecurityEventNotificationTask
-from charge_point_node.models.security_event_notification import SecurityEventNotificationEvent
+from pyocpp_contrib.v16.views.events import SecurityEventNotificationEvent
+from pyocpp_contrib.v16.views.tasks import SecurityEventNotificationResponse
 
 
 async def process_security_event_notification(
         session,
         event: SecurityEventNotificationEvent
-) -> SecurityEventNotificationTask:
+) -> SecurityEventNotificationResponse:
     # Do some logic here
 
-    return SecurityEventNotificationTask(
+    return SecurityEventNotificationResponse(
         message_id=event.message_id,
         charge_point_id=event.charge_point_id
     )

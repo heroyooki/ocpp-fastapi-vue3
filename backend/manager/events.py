@@ -5,20 +5,21 @@ from typing import Callable, Union
 from loguru import logger
 
 from ocpp.v16.enums import Action, ChargePointStatus
+from pyocpp_contrib.queue.publisher import publish
+from pyocpp_contrib.enums import ConnectionAction
+from pyocpp_contrib.v16.views.events import (
+    SecurityEventNotificationEvent,
+    StatusNotificationEvent,
+    BootNotificationEvent,
+    HeartbeatEvent,
+    LostConnectionEvent,
+    AuthorizeEvent,
+    StartTransactionEvent,
+    StopTransactionEvent,
+    MeterValuesEvent
+)
 
-from charge_point_node.models.base import BaseEvent
-from charge_point_node.models.security_event_notification import SecurityEventNotificationEvent
-from charge_point_node.models.status_notification import StatusNotificationEvent
-from charge_point_node.models.boot_notification import BootNotificationEvent
-from charge_point_node.models.heartbeat import HeartbeatEvent
-from charge_point_node.models.on_connection import LostConnectionEvent
-from charge_point_node.models.authorize import AuthorizeEvent
-from charge_point_node.models.start_transaction import StartTransactionEvent
-from charge_point_node.models.stop_transaction import StopTransactionEvent
-from charge_point_node.models.meter_values import MeterValuesEvent
 from core.database import get_contextual_session
-from core.fields import ConnectionStatus
-from core.queue.publisher import publish
 from manager.services.ocpp.boot_notification import process_boot_notification
 from manager.services.charge_points import update_charge_point
 from manager.services.ocpp.heartbeat import process_heartbeat
@@ -38,7 +39,7 @@ def prepare_event(func) -> Callable:
         logger.info(f"Got event from charge point node (event={data})")
 
         event = {
-            ConnectionStatus.LOST_CONNECTION: LostConnectionEvent,
+            ConnectionAction.lost_connection: LostConnectionEvent,
             Action.StatusNotification: StatusNotificationEvent,
             Action.BootNotification: BootNotificationEvent,
             Action.Heartbeat: HeartbeatEvent,
@@ -65,7 +66,17 @@ async def process_event(event: Union[
     StartTransactionEvent,
     StopTransactionEvent,
     MeterValuesEvent
-]) -> BaseEvent | None:
+]) -> Union[
+    LostConnectionEvent,
+    StatusNotificationEvent,
+    BootNotificationEvent,
+    HeartbeatEvent,
+    SecurityEventNotificationEvent,
+    AuthorizeEvent,
+    StartTransactionEvent,
+    StopTransactionEvent,
+    MeterValuesEvent
+] | None:
     task = None
 
     async with get_contextual_session() as session:
@@ -89,7 +100,7 @@ async def process_event(event: Union[
         if event.action is Action.Heartbeat:
             task = await process_heartbeat(session, deepcopy(event))
 
-        if event.action is ConnectionStatus.LOST_CONNECTION:
+        if event.action is ConnectionAction.lost_connection:
             data = ChargePointUpdateStatusView(status=ChargePointStatus.unavailable)
             await update_charge_point(session, charge_point_id=event.charge_point_id, data=data)
 

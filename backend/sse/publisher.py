@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import List, Callable
+from typing import List, Callable, Union
 
 from loguru import logger
+from pyocpp_contrib.v16.views.events import (
+    SecurityEventNotificationEvent,
+    StatusNotificationEvent,
+    BootNotificationEvent,
+    HeartbeatEvent,
+    LostConnectionEvent,
+    AuthorizeEvent,
+    StartTransactionEvent,
+    StopTransactionEvent,
+    MeterValuesEvent
+)
 
 import manager.services.charge_points as service
-from charge_point_node.models.base import BaseEvent
 from core import settings
 from core.database import get_contextual_session
 from sse import observer as obs
@@ -19,7 +29,20 @@ class Publisher:
     def __init__(self, redactor: Redactor):
         self.redactor = redactor
 
-    async def notify_observer(self, observer: obs.Observer, event: BaseEvent) -> None:
+    async def notify_observer(
+            self,
+            observer: obs.Observer,
+            event: Union[
+                LostConnectionEvent,
+                StatusNotificationEvent,
+                BootNotificationEvent,
+                HeartbeatEvent,
+                SecurityEventNotificationEvent,
+                AuthorizeEvent,
+                StartTransactionEvent,
+                StopTransactionEvent,
+                MeterValuesEvent]
+    ) -> None:
         event = await self.redactor.prepare_event(event, observer.account.id)
         if event:
             await observer.gain_event(event)

@@ -38,9 +38,29 @@ services:
     networks:
       - app-network
 
+
+  ws_server:
+    container_name: ws_server
+    image: heroyooki/charge_point_node:latest
+    restart: always
+    ports:
+      - "${WS_SERVER_PORT}:${WS_SERVER_PORT}"
+    env_file:
+      - .env
+    command: >
+      sh -c "cd /usr/src/app && python main.py"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+
   manager:
     container_name: csms-manager
-    image: heroyooki/ocpp:latest
+    build:
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: "${GITHUB_TOKEN}"
     volumes:
       - ./backend:/usr/src/csms/backend
     ports:
@@ -61,25 +81,6 @@ services:
     healthcheck:
       test: "exit 0"
 
-  charge_point_node:
-    container_name: charge_point_node
-    restart: always
-    image: heroyooki/ocpp:latest
-    volumes:
-      - ./backend:/usr/src/csms/backend
-    ports:
-      - "${WS_SERVER_PORT}:${WS_SERVER_PORT}"
-    env_file:
-      - .env
-    command: > 
-      sh -c "cd /usr/src/csms/backend && 
-             watchmedo auto-restart --pattern '*.py' --recursive --signal SIGTERM python charge_point_node/main.py"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - app-network
-
   frontend:
     container_name: frontend
     restart: always
@@ -98,15 +99,15 @@ services:
         condition: service_healthy
 
   nginx:
-      image: nginx:1.24.0-bullseye
-      ports:
-        - "80:80"
-      volumes:
-        - ./conf:/etc/nginx/conf.d
-      depends_on:
-        - frontend
-      networks:
-        - app-network
+    image: nginx:1.24.0-bullseye
+    ports:
+      - "80:80"
+    volumes:
+      - ./conf:/etc/nginx/conf.d
+    depends_on:
+      - frontend
+    networks:
+      - app-network
 
 networks:
   app-network:
