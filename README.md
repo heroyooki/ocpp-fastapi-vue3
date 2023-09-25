@@ -4,11 +4,6 @@
 
 ### The whole development process [on my YouTube channel](https://www.youtube.com/@user-ni4vw6yw8b/videos)
 
-### Quick start
-    - $ cp .env.backend > .env
-    - $ cp .env.frontend > frontend/.env.local
-    - $ docker-compose up
-
 ### Terms
 
     -  "charge point node" the same as the "charge point service" on the screen
